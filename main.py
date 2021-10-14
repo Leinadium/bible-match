@@ -1,57 +1,65 @@
-from argparse import ArgumentParser, Namespace
+import argparse
 import logging
 from typing import Union
 import json
 from html import unescape
 
-import match
-from match import get_dict_compilado, detecta_texto
+from match import detecta_texto
 
 
 def _create_args():
-    parser = ArgumentParser(description="Processa comentarios contendo referencias biblicas")
+    parser = argparse.ArgumentParser()
+    parser.add_argument('path_or_url', action='store', help='path do arquivo ou url de acesso (default: url)', metavar='XXX')
     parser.add_argument('-s', '--silent', action='store_true', help='executa sem exibir nenhum comando no terminal')
-    parser.add_argument('-u', '--url', action='store', default='http://biblecast.net.br/resources/comentarios.json', help='url para acessar o json')
-    parser.add_argument('-l', '--local', action='store', nargs=1, help='especifica um arquivo json local para acessar. Ignorado se URL for especificada')
-    parser.add_argument('-o', '--output', action='store', default='resultado.json', help='saída contendo os resultados')
+    parser.add_argument('-u', '--url', action='store_true', help='XXX é a url para acessar o json.')
+    parser.add_argument('-l', '--local', action='store_true', help='XXX é o arquivo json local para acessar. Ignorado se -u for usada')
+    parser.add_argument('-o', '--output', action='store', type=argparse.FileType('w+', encoding='utf8'), help='saída contendo os resultados')
     parser.add_argument('-c', '--with_comment', action='store_true', help='salva tambem os comentarios no output')
     return parser.parse_args()
 
 
-def fetch_json(local=Union[str, None], url=Union[str, None]) -> Union[dict, None]:
+def fetch_json(path:str, tipo:str) -> Union[dict, None]:
     """
     Coleta o json, transformando para um dicionario
-    :param local: path para arquivo local. Ignorado se url não for nula
-    :param url: url para coletar o json.
+    :param path: path para arquivo local ou url
+    :param tipo: 'url' ou 'path'
     :return: dicionario contendo as mensagens
     """
     ret:dict = {}
 
-    if url:
+    if tipo == 'url':
         try:
-            logging.info("Acessando %s" % url)
+            # adicionado http em path
+            if not path.startswith('http://'):
+                path = 'http://' + path
+            logging.info("Acessando %s" % path)
             import requests
-            headers = {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:79.0) Gecko/20100101 Firefox/79.0'}
-            r = requests.get(url, headers=headers)
-            # r.encoding = 'ISO-8859-1'
             try:
+                headers = {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:79.0) Gecko/20100101 Firefox/79.0'}
+                r = requests.get(path, headers=headers)
+                if r.status_code > 400:
+                    logging.error("Erro ao conectar em %s, recebi código %d" % (path, r.status_code))
+                    exit(-1)
+                r.encoding = 'ISO-8859-1'
                 ret = r.json()
             except (json.JSONDecodeError, ValueError) as e:
                 logging.error("Arquivo JSON inválido. Não foi possível decodificar o GET em um json: %s" % str(e))
                 exit(1)
+            except requests.ConnectionError:
+                logging.error("Erro ao conectar em %s" % path)
 
         except ModuleNotFoundError:
             logging.error("Módulo 'requests' não encontrado. Instale usando 'python -m pip install requests' ou 'python3 -m pip3 install requests'.")
             exit(1)
 
-    elif local:
+    elif tipo == 'local':
         try:
-            logging.info("Abrindo arquivo %s" % local)
-            with open(local, 'r', encoding='ISO-8859-1') as f:
+            logging.info("Abrindo arquivo %s" % path)
+            with open(path, 'r', encoding='ISO-8859-1') as f:
                 ret = json.load(f)
         except OSError:
-            logging.error(f"Arquivo {local} não encontrado")
+            logging.error(f"Arquivo {path} não encontrado")
             exit(1)
         except json.JSONDecodeError:
             logging.error("Arquivo JSON inválido")
@@ -65,6 +73,7 @@ def parse_dict(d:dict, with_comments:bool) -> dict:
     """
     Faz o parsing do dicionario contendo os comentarios.
 
+    :param with_comments: caso seja True, coloca os comentarios originais no dicionario final
     :param d: dicionario na forma { 'mensagem', 'observacoes' }
     :return: dicionario na forma { 'mensagem': ['match1', 'match2', ..., 'matchX'] }
     """
@@ -80,7 +89,7 @@ def parse_dict(d:dict, with_comments:bool) -> dict:
             exit(1)
 
         line_normalizada = unescape(line)   # normaliza
-        detectado = match.detecta_texto(line_normalizada)
+        detectado = detecta_texto(line_normalizada)
         if with_comments:
             ret[key] = {'comentario': line_normalizada, 'detectado': detectado}
         else:
@@ -89,27 +98,37 @@ def parse_dict(d:dict, with_comments:bool) -> dict:
     return ret
 
 
-def store_dict(d:dict, path:str):
+def store_dict(d:dict, file):
     """
     Salva o dicionario em um arquivo json
     :param d: dicionario para ser guardado
-    :param path: path do arquivo JSON a ser gerado ou sobrescrito
+    :param file: arquivo JSON a ser gerado ou sobrescrito
     """
 
-    with open(path, 'w+', encoding='utf-8') as f:
-        json.dump(d, f, indent=2)
+    json.dump(d, file, indent=2)
+    file.close()
     return
 
 
-if __name__ == "__main__":
+def main():
     args = vars(_create_args())
     if args.get('silent'):
         logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.WARNING)
     else:
         logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
-    # print(args)
-    dicionario = fetch_json(local=args.get('local'), url=args.get('url'))
-    expressoes = get_dict_compilado()
-    resultado = parse_dict(dicionario, args.get('with_comment'))
-    store_dict(resultado, args.get('output'))
 
+    p = args.get('path_or_url')
+    t = 'url' if args.get('url') else 'local'
+    if args.get('output') is None:
+        o = open('resultado.json', 'w+', encoding='utf8')
+    else:
+        o = args.get('output')
+    w = args.get('with_comment')
+
+    dicionario = fetch_json(path=p, tipo=t)
+    resultado = parse_dict(dicionario, w)
+    store_dict(resultado, o)
+
+
+if __name__ == "__main__":
+    main()
