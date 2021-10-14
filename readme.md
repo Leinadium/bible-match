@@ -75,6 +75,28 @@ O arquivo de saída contem uma lista para cada podcast, com as referências enco
 
 Caso o livro não possua capítulos, ou não foi encontrada alguma refência ao capítulo lido, o capítulo será ```000```
 
+Exemplo de saída utilizando o JSON acima:
+
+```json
+{
+  "id_podcast_1": [
+    "MAT001"
+  ],
+  "id_podcast_2": [
+    "GEN010",
+    "LEV003"
+  ],
+  "id_podcast_3": [
+    "JOA000"
+  ],
+  "id_podcast_4": [
+    "SAL030"
+  ],
+  "id_podcast_5": []
+}
+```
+
+
 A seguir estão os identificadores utilizados para cada livro:
 
 ```text
@@ -150,20 +172,22 @@ APO = Apocalipse
 Execute o arquivo ```main.py``` . Ele possui algumas opções, que podem ser visualizadas com a opção ```-h```:
 
 ```text
-> python main.py -h
-usage: main.py [-h] [-s] [-u URL] [-l LOCAL] [-o OUTPUT] [-c]
+>python main.py -h
+usage: main.py [-h] [-s] [-u] [-o OUTPUT] [-c] PATH
 
-Processa comentarios contendo referencias biblicas
+positional arguments:
+  PATH                  path do arquivo ou url de acesso (default: url)
 
 optional arguments:
   -h, --help            show this help message and exit
   -s, --silent          executa sem exibir nenhum comando no terminal
-  -u URL, --url URL     url para acessar o json
-  -l LOCAL, --local LOCAL
-                        especifica um arquivo json local para acessar. Ignorado se URL for especificada
+  -u, --url             PATH é uma url para acessar o json.
   -o OUTPUT, --output OUTPUT
                         saída contendo os resultados
   -c, --with_comment    salva tambem os comentarios no output
+
+
+
 ```
 
 ## Configurações Avançadas

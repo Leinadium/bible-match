@@ -9,12 +9,14 @@ from match import detecta_texto
 
 def _create_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('path_or_url', action='store', help='path do arquivo ou url de acesso (default: url)', metavar='XXX')
     parser.add_argument('-s', '--silent', action='store_true', help='executa sem exibir nenhum comando no terminal')
-    parser.add_argument('-u', '--url', action='store_true', help='XXX é a url para acessar o json.')
-    parser.add_argument('-l', '--local', action='store_true', help='XXX é o arquivo json local para acessar. Ignorado se -u for usada')
-    parser.add_argument('-o', '--output', action='store', type=argparse.FileType('w+', encoding='utf8'), help='saída contendo os resultados')
+    parser.add_argument('-u', '--url', action='store_true', help='PATH é uma url para acessar o json.')
+    # parser.add_argument('-l', '--local', action='store_true', help='XXX é o arquivo json local para acessar. Ignorado se -u for usada')
+    parser.add_argument('-o', '--output', action='store', type=argparse.FileType('w+', encoding='utf8'),
+                        help='saída contendo os resultados')
     parser.add_argument('-c', '--with_comment', action='store_true', help='salva tambem os comentarios no output')
+    parser.add_argument('path_or_url', action='store', help='path do arquivo ou url de acesso (default: url)',
+                        metavar='PATH')
     return parser.parse_args()
 
 
