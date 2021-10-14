@@ -49,7 +49,7 @@
   "GAL": "\\b((?:g[áa]latas)|gl)(?:(?:\\s+cap[ií]tulos?\\s+)|(?:[\\s:\\.]*))?([1-6])?",
   "EFE": "\\b((?:ef[ée]sios)|ef)(?:(?:\\s+cap[ií]tulos?\\s+)|(?:[\\s:\\.]*))?([1-6])?",
   "FIL": "\\b((?:filipenses)|fp)(?:(?:\\s+cap[ií]tulos?\\s+)|(?:[\\s:\\.]*))?([1-4])?",
-  "COL": "\\b((?:coloss?enses)|fp)(?:(?:\\s+cap[ií]tulos?\\s+)|(?:[\\s:\\.]*))?([1-4])?",
+  "COL": "\\b((?:coloss?enses)|cl)(?:(?:\\s+cap[ií]tulos?\\s+)|(?:[\\s:\\.]*))?([1-4])?",
   "1TE": "\\b([1il]\\s*tessalonicenses|[1il]\\s*ts)(?:(?:\\s+cap[ií]tulos?\\s+)|(?:[\\s:\\.]*))?([1-5])?",
   "2TE": "\\b((?:2|ii|ll)\\s*tessalonicenses|(?:2|ii|ll)\\s*ts)(?:(?:\\s+cap[ií]tulos?\\s+)|(?:[\\s:\\.]*))?([1-3]?)?",
   "1TI": "\\b([1il]\\s*tim[óo]teo|[1il]\\s*tm)(?:(?:\\s+cap[ií]tulos?\\s+)|(?:[\\s:\\.]*))?([1-6])?",
